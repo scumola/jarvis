@@ -1,0 +1,423 @@
+{
+  "tools": [
+    {
+      "name": "read_file",
+      "description": "Read the contents of a text file from the filesystem",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "string",
+          "description": "Path to the file to read",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "max_lines",
+          "type": "integer",
+          "description": "Maximum number of lines to read (optional, reads all if not specified)",
+          "required": false,
+          "default": null
+        }
+      ],
+      "category": "filesystem",
+      "requires_approval": false,
+      "dangerous": false
+    },
+    {
+      "name": "write_file",
+      "description": "Write content to a file (creates or overwrites)",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "string",
+          "description": "Path to the file to write",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "description": "Content to write to the file",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "append",
+          "type": "boolean",
+          "description": "If true, append to file instead of overwriting",
+          "required": false,
+          "default": false
+        }
+      ],
+      "category": "filesystem",
+      "requires_approval": true,
+      "dangerous": true
+    },
+    {
+      "name": "list_directory",
+      "description": "List files and subdirectories in a directory",
+      "parameters": [
+        {
+          "name": "dir_path",
+          "type": "string",
+          "description": "Path to the directory to list",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "recursive",
+          "type": "boolean",
+          "description": "If true, list all files recursively",
+          "required": false,
+          "default": false
+        }
+      ],
+      "category": "filesystem",
+      "requires_approval": false,
+      "dangerous": false
+    },
+    {
+      "name": "find_files",
+      "description": "Find files matching a pattern in current directory and subdirectories (glob-style: *.py, test*, etc.)",
+      "parameters": [
+        {
+          "name": "pattern",
+          "type": "string",
+          "description": "Glob-style pattern to match filenames (e.g., '*.py', 'test*', '*.txt')",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "search_path",
+          "type": "string",
+          "description": "Directory to search in (defaults to current directory, restricted to CWD and children)",
+          "required": false,
+          "default": "."
+        },
+        {
+          "name": "max_results",
+          "type": "integer",
+          "description": "Maximum number of results to return (default 100)",
+          "required": false,
+          "default": 100
+        }
+      ],
+      "category": "filesystem",
+      "requires_approval": false,
+      "dangerous": false
+    },
+    {
+      "name": "fetch_url",
+      "description": "Fetch content from a URL (http/https only, blocks local networks)",
+      "parameters": [
+        {
+          "name": "url",
+          "type": "string",
+          "description": "URL to fetch (must be http:// or https://)",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "timeout",
+          "type": "integer",
+          "description": "Request timeout in seconds (default 10)",
+          "required": false,
+          "default": 10
+        },
+        {
+          "name": "max_size_mb",
+          "type": "integer",
+          "description": "Maximum content size in MB (default 10)",
+          "required": false,
+          "default": 10
+        }
+      ],
+      "category": "web",
+      "requires_approval": false,
+      "dangerous": false
+    },
+    {
+      "name": "edit_file",
+      "description": "Edit a file by replacing a specific string (creates backup, shows diff, string must appear exactly once)",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "string",
+          "description": "Path to the file to edit",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "old_string",
+          "type": "string",
+          "description": "String to find and replace (must appear exactly once in file)",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "new_string",
+          "type": "string",
+          "description": "String to replace with",
+          "required": true,
+          "default": null
+        }
+      ],
+      "category": "filesystem",
+      "requires_approval": true,
+      "dangerous": true
+    },
+    {
+      "name": "list_backups",
+      "description": "List available file backups (created by edit_file)",
+      "parameters": [
+        {
+          "name": "file_name",
+          "type": "string",
+          "description": "Filter backups by original filename (optional)",
+          "required": false,
+          "default": null
+        }
+      ],
+      "category": "filesystem",
+      "requires_approval": false,
+      "dangerous": false
+    },
+    {
+      "name": "restore_backup",
+      "description": "Restore a file from backup (shows diff, creates backup of current state before restoring)",
+      "parameters": [
+        {
+          "name": "backup_path",
+          "type": "string",
+          "description": "Path to the backup file (from list_backups)",
+          "required": true,
+          "default": null
+        }
+      ],
+      "category": "filesystem",
+      "requires_approval": true,
+      "dangerous": true
+    },
+    {
+      "name": "grep",
+      "description": "Search for a pattern in a file (regex supported)",
+      "parameters": [
+        {
+          "name": "pattern",
+          "type": "string",
+          "description": "Pattern to search for (regex)",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "file_path",
+          "type": "string",
+          "description": "File to search in",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "ignore_case",
+          "type": "boolean",
+          "description": "Case-insensitive search (default false)",
+          "required": false,
+          "default": false
+        },
+        {
+          "name": "context",
+          "type": "integer",
+          "description": "Number of context lines before/after match (default 0)",
+          "required": false,
+          "default": 0
+        }
+      ],
+      "category": "text_tools",
+      "requires_approval": false,
+      "dangerous": false
+    },
+    {
+      "name": "diff",
+      "description": "Compare two files and show differences",
+      "parameters": [
+        {
+          "name": "file1",
+          "type": "string",
+          "description": "First file to compare",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "file2",
+          "type": "string",
+          "description": "Second file to compare",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "unified",
+          "type": "boolean",
+          "description": "Use unified diff format (default true)",
+          "required": false,
+          "default": true
+        }
+      ],
+      "category": "text_tools",
+      "requires_approval": false,
+      "dangerous": false
+    },
+    {
+      "name": "wc",
+      "description": "Count lines, words, and characters in a file",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "string",
+          "description": "File to analyze",
+          "required": true,
+          "default": null
+        }
+      ],
+      "category": "text_tools",
+      "requires_approval": false,
+      "dangerous": false
+    },
+    {
+      "name": "head",
+      "description": "Show the first N lines of a file",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "string",
+          "description": "File to read",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "lines",
+          "type": "integer",
+          "description": "Number of lines to show (default 10)",
+          "required": false,
+          "default": 10
+        }
+      ],
+      "category": "text_tools",
+      "requires_approval": false,
+      "dangerous": false
+    },
+    {
+      "name": "tail",
+      "description": "Show the last N lines of a file",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "string",
+          "description": "File to read",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "lines",
+          "type": "integer",
+          "description": "Number of lines to show (default 10)",
+          "required": false,
+          "default": 10
+        }
+      ],
+      "category": "text_tools",
+      "requires_approval": false,
+      "dangerous": false
+    },
+    {
+      "name": "get_news_headlines",
+      "description": "Fetch latest news headlines from searxng (auto-deduplicates similar headlines)",
+      "parameters": [
+        {
+          "name": "query",
+          "type": "string",
+          "description": "Search query for news (default: 'breaking news')",
+          "required": false,
+          "default": "breaking news"
+        },
+        {
+          "name": "max_results",
+          "type": "integer",
+          "description": "Maximum number of headlines to return (default 10)",
+          "required": false,
+          "default": 10
+        }
+      ],
+      "category": "news",
+      "requires_approval": false,
+      "dangerous": false
+    },
+    {
+      "name": "get_datetime",
+      "description": "Get the current date and time in various formats (full/date/time/timestamp)",
+      "parameters": [
+        {
+          "name": "format",
+          "type": "string",
+          "description": "Format type: 'full' (default), 'date', 'time', or 'timestamp'",
+          "required": false,
+          "default": "full"
+        }
+      ],
+      "category": "system",
+      "requires_approval": false,
+      "dangerous": false
+    },
+    {
+      "name": "web_search",
+      "description": "Search the internet using multiple sources with built-in fact-checking. Searches SearXNG (metasearch engine) and Wikipedia for factual queries. Returns results with confidence ratings based on source agreement. Use this to find current information, verify facts, or research topics. Especially useful for factual queries about people, events, statistics, and current affairs.",
+      "parameters": [
+        {
+          "name": "query",
+          "type": "string",
+          "description": "The search query. Can be a question or keywords.",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "max_results",
+          "type": "integer",
+          "description": "Maximum number of results to return (1-20, default: 5)",
+          "required": false,
+          "default": 5
+        },
+        {
+          "name": "check_facts",
+          "type": "boolean",
+          "description": "Whether to perform fact-checking and source verification (default: true)",
+          "required": false,
+          "default": true
+        }
+      ],
+      "category": "web",
+      "requires_approval": false,
+      "dangerous": false
+    },
+    {
+      "name": "create_directory",
+      "description": "Create a new directory (like mkdir). Creates parent directories by default if they don't exist.",
+      "parameters": [
+        {
+          "name": "dir_path",
+          "type": "string",
+          "description": "Path to the directory to create",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "parents",
+          "type": "boolean",
+          "description": "If true, create parent directories as needed (default true)",
+          "required": false,
+          "default": true
+        }
+      ],
+      "category": "filesystem",
+      "requires_approval": true,
+      "dangerous": false
+    }
+  ]
+}
