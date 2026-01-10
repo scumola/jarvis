@@ -1,0 +1,20 @@
+# Core dependencies
+requests>=2.31.0
+pydantic>=2.5.0
+pyyaml>=6.0
+
+# LLM Integration
+ollama>=0.1.0
+
+# Memory System
+chromadb>=0.4.22  # Vector store for RAG
+mysql-connector-python>=8.2.0  # MySQL integration
+
+# API Server
+fastapi>=0.104.0  # Web framework
+uvicorn[standard]>=0.24.0  # ASGI server
+python-multipart>=0.0.6  # For form data support
+
+# Future dependencies (commented for now)
+# whisper  # STT (if local)
+# piper-tts  # TTS alternative

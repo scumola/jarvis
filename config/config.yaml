@@ -1,0 +1,93 @@
+# Jarvis Configuration
+
+# Ollama Server
+ollama:
+  host: "gpu"
+  port: 11434
+# model: "qwen3:8b"  # Primary model for Persona LLM
+  model: "llama3.1:8b"  # Primary model for Persona LLM
+  timeout: 300  # Timeout for Persona LLM (main conversations)
+  verifier_timeout: 300  # Timeout for Verifier LLM
+  curator_timeout: 300  # Timeout for Memory Curator LLM
+  strategist_timeout: 300  # Timeout for Retry Strategist LLM
+  decomposer_timeout: 300  # Timeout for Goal Decomposer LLM
+  summarizer_timeout: 120  # Timeout for Conversation Summarizer LLM
+  introspection_timeout: 180  # Timeout for Introspection LLM (post-task analysis)
+  # Model escalation (optional - upgrade to larger model when justified)
+  allow_escalation: true  # Set to true to enable model escalation
+  escalation_model: "qwen3:14b"  # Larger model for complex tasks (if available)
+
+# TTS/STT (for future use)
+tts:
+  provider: "kokoro"
+  host: "gpu"
+  enabled: false  # Start with text-only
+
+stt:
+  provider: "whisper"
+  enabled: false  # Start with text-only
+
+# Tool System
+tools:
+  registry_path: "data/tool_registry.json"
+  sandbox_enabled: true
+  require_approval: true  # Require human approval for destructive actions
+
+# Verification System
+verification:
+  enabled: true  # Enable result verification
+  max_retries: 5  # Maximum retry attempts if verification fails
+
+# Conversation Summarization
+summarization:
+  enabled: true  # Enable automatic conversation summarization
+  max_tokens: 8000  # Maximum conversation token budget
+  trigger_threshold: 0.7  # Summarize at 70% of max tokens
+  preserve_recent: 6  # Number of recent messages to keep unsummarized (3 exchanges)
+
+# Logging
+logging:
+  level: "INFO"
+  path: "logs/jarvis.log"
+  console: true
+
+# Memory System with RAG
+memory:
+  enabled: true  # Memory system is now active!
+  vector_db: "chromadb"
+  vector_db_path: "data/vector_store"
+  mysql_host: "tools"
+  mysql_database: "jarvis"
+  mysql_user: "steve"
+  mysql_password: "koala1"
+  # Retrieval settings
+  default_k: 10
+  min_confidence: 0.5
+  min_decay_score: 20.0
+  # Storage settings
+  min_proposal_confidence: 0.3
+  # Procedural memory (learned retry strategies)
+  procedural_enabled: true  # Learn from successful retries
+  procedural_min_confidence: 0.4  # Minimum confidence to apply heuristic
+  procedural_auto_decay: true  # Automatically decay stale heuristics
+  procedural_decay_days: 7  # Decay heuristics unused for this many days
+  procedural_decay_amount: 0.01  # Decay amount per day
+  procedural_adaptive: true  # Use adaptive confidence thresholds based on success rate
+  procedural_pattern_matching: true  # Enable fuzzy matching for similar contexts
+
+# Goal & Task Management System
+goals:
+  enabled: true  # Enable long-running goal tracking with subtasks
+  max_autonomous_iterations: 100  # Safety limit for autonomous execution
+  save_checkpoints: true  # Save state after each task completion
+  auto_detect: true  # Automatically detect when user requests should become goals
+  auto_execute_goals: true  # Automatically execute detected goals (vs just creating them)
+
+# API Server Configuration
+api:
+  host: "0.0.0.0"  # Listen on all interfaces
+  port: 8000  # API server port
+  session_timeout: 3600  # Session timeout in seconds (1 hour)
+  max_sessions: 10  # Maximum concurrent user sessions
+  # CORS settings (configure for production)
+  cors_origins: ["*"]  # Allowed origins (use specific domains in production)
