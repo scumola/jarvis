@@ -6,10 +6,13 @@ over time based on their type, access patterns, and age.
 """
 
 from datetime import datetime, timedelta
-from typing import Dict
+from typing import Dict, Tuple, TYPE_CHECKING
 import logging
 
-from .schemas import Memory, MemoryType
+from .schemas import Memory, MemoryType, VerificationStatus
+
+if TYPE_CHECKING:
+    from .manager import MemoryManager
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +109,112 @@ def should_archive(memory: Memory, threshold: float = 5.0) -> bool:
         True if memory should be archived
     """
     return memory.decay_score < threshold
+
+
+def should_archive_enhanced(
+    memory: Memory,
+    current_time: datetime,
+    config: Dict
+) -> Tuple[bool, str]:
+    """
+    Enhanced archival decision with multiple criteria.
+
+    Archival Criteria (checked in order):
+    1. Decay score below threshold
+    2. Low confidence + contradicted status
+    3. Very old + never accessed
+    4. Superseded by another memory
+
+    Args:
+        memory: Memory to evaluate
+        current_time: Current datetime
+        config: Configuration dict with enhanced_archival section
+
+    Returns:
+        Tuple of (should_archive, reason)
+    """
+    enhanced_config = config.get('enhanced_archival', {})
+
+    # Criterion 1: Decay score below threshold
+    decay_threshold = enhanced_config.get('decay_threshold', 5.0)
+    if memory.decay_score < decay_threshold:
+        return True, "decay_score_low"
+
+    # Criterion 2: Low confidence + contradicted
+    min_confidence = enhanced_config.get('min_confidence_threshold', 0.4)
+    if (memory.confidence < min_confidence and
+        memory.verification_status == VerificationStatus.CONTRADICTED):
+        return True, "low_confidence_contradicted"
+
+    # Criterion 3: Very old + never accessed
+    old_age_days = enhanced_config.get('old_age_days', 365)
+    if memory.created_at:
+        days_old = (current_time - memory.created_at).days
+        if days_old > old_age_days and memory.access_count == 0:
+            return True, "old_never_accessed"
+
+    # Criterion 4: Superseded by another memory
+    if memory.superseded_by is not None:
+        return True, "superseded"
+
+    return False, None
+
+
+def archive_stale_memories(manager: 'MemoryManager') -> Dict[str, int]:
+    """
+    Archive memories based on enhanced criteria.
+
+    Scans all active memories and archives those meeting any archival criterion.
+
+    Args:
+        manager: MemoryManager instance
+
+    Returns:
+        Dict with counts per archival reason
+    """
+    stats = {
+        'decay_score_low': 0,
+        'low_confidence_contradicted': 0,
+        'old_never_accessed': 0,
+        'superseded': 0,
+        'total_archived': 0
+    }
+
+    budgeting_config = manager.config.get('context_budgeting', {})
+
+    # Get all active memories from metadata store
+    all_memories = manager.metadata_store.get_all_memories()
+    active_memories = [m for m in all_memories if (m.status.value if hasattr(m.status, 'value') else str(m.status)) == 'active']
+
+    current_time = datetime.now()
+
+    for memory in active_memories:
+        should_arch, reason = should_archive_enhanced(
+            memory,
+            current_time,
+            budgeting_config
+        )
+
+        if should_arch and reason:
+            # Archive the memory
+            manager.metadata_store.update_memory(
+                memory.id,
+                status='archived'
+            )
+            stats[reason] += 1
+            stats['total_archived'] += 1
+
+            logger.info(
+                f"Archived memory {memory.id} (reason: {reason}): "
+                f"{memory.memory_text[:50]}..."
+            )
+
+    logger.info(
+        f"Enhanced archival complete: {stats['total_archived']} memories archived. "
+        f"Breakdown: {stats}"
+    )
+
+    return stats
 
 
 def calculate_batch_decay(

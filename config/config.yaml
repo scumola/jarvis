@@ -41,7 +41,7 @@ verification:
 # Conversation Summarization
 summarization:
   enabled: true  # Enable automatic conversation summarization
-  max_tokens: 8000  # Maximum conversation token budget
+  max_tokens: 128000  # Maximum conversation token budget (should match model context window)
   trigger_threshold: 0.7  # Summarize at 70% of max tokens
   preserve_recent: 6  # Number of recent messages to keep unsummarized (3 exchanges)
 
@@ -74,6 +74,42 @@ memory:
   procedural_decay_amount: 0.01  # Decay amount per day
   procedural_adaptive: true  # Use adaptive confidence thresholds based on success rate
   procedural_pattern_matching: true  # Enable fuzzy matching for similar contexts
+
+  # Context Budgeting & Memory Shaping
+  context_budgeting:
+    enabled: true  # Enable dynamic token budget management
+    # max_total_tokens: AUTO-DETECTED from model name (see memory/model_specs.py)
+    # Uncomment to override auto-detection:
+    # max_total_tokens: 128000  # Manual override (llama3.1:8b = 128K, qwen3:8b = 262K)
+    # memory_budget_percentage: 0.10  # Reserve 10% of total context for memories (auto-detected if not set)
+    # hard_cap_memories: 20  # Never exceed this many memories per retrieval (auto-detected if not set)
+    avg_memory_tokens: 50  # Estimated average tokens per memory (text + metadata)
+    min_memories: 1  # Always retrieve at least 1 memory (if available)
+
+    # Type quotas (optional per-type limits)
+    type_quotas:
+      identity: 2  # Max 2 identity memories per retrieval
+      preference: 2  # Max 2 preference memories
+      capability: 3  # Max 3 capability memories
+      project: 3  # Max 3 project memories
+      episodic: 2  # Max 2 episodic memories
+      social: 1  # Max 1 social memory
+
+    # Task-aware scoring
+    task_aware_scoring: true  # Adjust relevance weights based on query type
+    recency_boost_enabled: true  # Boost recently accessed memories
+
+    # Enhanced archival
+    enhanced_archival:
+      enabled: true  # Enable multi-criteria archival
+      decay_threshold: 5.0  # Archive if decay score below this
+      min_confidence_threshold: 0.4  # Archive contradicted memories below this confidence
+      old_age_days: 365  # Archive if older than this and never accessed
+
+    # Consolidation
+    consolidation_enabled: true  # Enable automatic duplicate detection and merging
+    consolidation_similarity_threshold: 0.85  # Merge memories with >85% text similarity
+    consolidation_strategy: "keep_highest_confidence"  # Strategy: keep_highest_confidence or keep_most_recent
 
 # Goal & Task Management System
 goals:
