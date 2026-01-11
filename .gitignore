@@ -79,3 +79,9 @@ secrets/
 /demo_test_logs/
 *.output
 /tasks/
+
+# Backup directories
+backups/
+
+# Error artifacts (from pip install or similar)
+=*

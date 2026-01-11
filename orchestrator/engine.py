@@ -468,7 +468,20 @@ class Orchestrator:
         Returns:
             Result dictionary with response and actions
         """
-        # Step 1: Retrieve relevant memories (if enabled)
+        # Step 1: Calculate token budget for memories (NEW)
+        token_budget = None
+        if self.memory_enabled and user_id is not None:
+            budgeting_enabled = self.config.get('memory', {}).get('context_budgeting', {}).get('enabled', False)
+            if budgeting_enabled:
+                # Estimate tokens in conversation history
+                conv_tokens = self._estimate_conversation_tokens()
+
+                # Calculate available budget for memories
+                if self.memory_manager.budget_controller:
+                    token_budget = self.memory_manager.budget_controller.calculate_available_budget(conv_tokens)
+                    logger.info(f"Token budget for memories: {token_budget} (conversation: {conv_tokens})")
+
+        # Step 2: Retrieve relevant memories (if enabled) with budget awareness (ENHANCED)
         memory_context = None
         if self.memory_enabled and user_id is not None:
             try:
@@ -476,6 +489,7 @@ class Orchestrator:
                     user_id=user_id,
                     query=input_message,
                     k=10,
+                    token_budget=token_budget,  # NEW: Pass budget
                     min_confidence=0.5,
                     min_decay_score=20.0
                 )
@@ -848,6 +862,28 @@ class Orchestrator:
             success = action.get('success', False)
             summary += f"- {tool_name}: {'SUCCESS' if success else 'FAILED'}\n"
         return summary
+
+    def _estimate_conversation_tokens(self) -> int:
+        """
+        Estimate token count for current conversation history.
+
+        Uses simple heuristic: ~4 characters per token (standard approximation)
+
+        Returns:
+            Estimated token count
+        """
+        if not hasattr(self, 'persona_llm') or not hasattr(self.persona_llm, 'conversation_history'):
+            return 0
+
+        total_chars = sum(
+            len(msg.get('content', ''))
+            for msg in self.persona_llm.conversation_history
+        )
+
+        # Simple heuristic: ~4 chars per token
+        estimated_tokens = total_chars // 4
+
+        return estimated_tokens
 
     # ==================== Goal Management Integration ====================
 
